@@ -31,6 +31,21 @@ export default class Firestore {
     return () => {};
   }
 
+  runTransaction(transFunc) {
+    const batch = this.batch();
+    batch.get = (doc => doc.get());
+    return new Promise(((resolve, reject) => {
+      Promise.resolve(transFunc(batch)).then((value) => {
+        batch
+          .commit()
+          .then(() => {
+            resolve(value);
+          })
+          .catch(reject);
+      }).catch(reject);
+    }));
+  }
+
   batch() {
     return new WriteBatch();
   }
